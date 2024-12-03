@@ -64,9 +64,7 @@ public class MobileBaseTest {
 
     @AfterEach
     public void tearDown() throws IOException {
-        //Runtime.getRuntime().exec("taskkill /F /IM scrcpy.exe");
         stopRecording(currentTestName);
-        //proceso.destroy();
         if (driver != null) {
             driver.quit();
         }
@@ -78,20 +76,9 @@ public class MobileBaseTest {
         if ("Android".equalsIgnoreCase(platform)) {
             try {
                 String sanitizedTestName = sanitizeFileName(testName);
-                //String videoFile = "recording_" + sanitizedTestName + ".mp4";
-                //String command = String.format("adb shell screenrecord /sdcard/%s", videoFile);
-                //String ruta = "C:\\Users\\recording_" + sanitizedTestName + ".mp4";
-                //String command = "scrcpy --record \"" + ruta + "\"";
-                //String command = "cmd /c start permisoslnk.lnk";
-                //String command = "powershell Start-Process \"cmd.exe\" -ArgumentList \"/c scrcpy --record ./videos/recording_.mp4\" -Verb RunAs";
-                String command = "scrcpy --record \"C:\\Users\\Juan Navarro\\recording_video.mp4\"";
-                // ---- Inicia la grabación con scrcpy
-                Runtime.getRuntime().exec(command,null,null);
-
-
-
-                //Runtime.getRuntime().exec(command,null,null);
                 String videoFile = "recording_" + sanitizedTestName + ".mp4";
+                String command = "scrcpy --record ./videos/" + videoFile;
+                Runtime.getRuntime().exec(command,null,null);
                 System.out.println("Grabación iniciada para Android: " + videoFile);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -111,19 +98,8 @@ public class MobileBaseTest {
         if ("Android".equalsIgnoreCase(platform)) {
             try {
                 // Detiene la grabación, finalizando el proceso de scrcpy
-
                 Runtime.getRuntime().exec("taskkill  /IM scrcpy.exe");
                 System.out.println("Grabación detenida para Android.");
-
-                //String sanitizedTestName = sanitizeFileName(testName);
-                //String videoFile = "recording_mp4";
-                //Runtime.getRuntime().exec("adb shell killall -2 screenrecord");
-
-                //File localFile = new File("./videos/" + videoFile);
-                //localFile.getParentFile().mkdirs();
-               // Runtime.getRuntime().exec("adb pull /sdcard/" + videoFile + " ./videos/");
-                //Runtime.getRuntime().exec("adb shell rm /sdcard/" + videoFile);
-                //System.out.println("Grabación guardada para Android: " + localFile.getAbsolutePath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
