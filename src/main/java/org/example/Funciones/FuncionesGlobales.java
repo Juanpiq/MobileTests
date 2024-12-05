@@ -15,6 +15,7 @@ import java.time.Duration;
 
 public class FuncionesGlobales {
     private AppiumDriver driver;
+    private int tesp = 15;
 
     public FuncionesGlobales(AppiumDriver driver) {
         this.driver = driver;
@@ -33,13 +34,13 @@ public class FuncionesGlobales {
 
     // Método para esperar un elemento visible por XPath
     public WebElement SEX(String selector) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(tesp));
         return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(selector)));
     }
 
     // Método para esperar un elemento visible por ID
     public WebElement SEI(String selector) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(tesp));
         return wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(selector)));
     }
 
