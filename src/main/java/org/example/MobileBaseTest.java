@@ -6,6 +6,8 @@ import io.appium.java_client.ios.IOSDriver;
 import org.example.Funciones.FuncionesGlobales;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.openqa.selenium.OutputType;
@@ -24,6 +26,23 @@ public class MobileBaseTest {
     private String platform;
     private String currentTestName;
     private int t = 1;
+    private static Process appiumProcess; // Proceso de Appium
+
+    @BeforeAll
+    public static void startAppiumServer() {
+        freePort(4723);
+        try {
+            // Iniciar Appium directamente con el comando 'appium', ya que está en el PATH
+            ProcessBuilder processBuilder = new ProcessBuilder("appium.cmd");
+            processBuilder.inheritIO(); // Mostrar la salida del servidor en la consola
+            appiumProcess = processBuilder.start(); // Guardar referencia al proceso
+            System.out.println("Appium Server iniciado.");
+            Thread.sleep(10000);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al iniciar Appium Server.");
+        }
+    }
 
     @BeforeEach
     public void setUp(TestInfo testInfo) throws MalformedURLException {
@@ -73,9 +92,13 @@ public class MobileBaseTest {
         if (driver != null) {
             driver.quit();
         }
-
-
     }
+
+    @AfterAll
+    public static void cleanup(){
+        stopAppiumServer();
+    }
+
 
     private void startRecording(String testName) {
         if ("Android".equalsIgnoreCase(platform)) {
@@ -158,8 +181,16 @@ public class MobileBaseTest {
     private static void takeScreenshot(AppiumDriver driver, String fileName) {
         // Captura la pantalla y guarda la imagen en un archivo temporal
         File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+
         // Define el destino del archivo
         File destFile = new File("./screenshots/" + fileName + ".png");
+
+        // Verificar si el archivo ya existe y darle un nuevo nombre si es necesario
+        int counter = 1;
+        while (destFile.exists()) {
+            destFile = new File("./screenshots/" + fileName + "_" + counter + ".png");
+            counter++;
+        }
 
         try {
             // Crea el directorio si no existe
@@ -173,4 +204,49 @@ public class MobileBaseTest {
             System.err.println("Error al guardar la captura de pantalla.");
         }
     }
+
+    private static void freePort(int port) {
+        try {
+            Process process = Runtime.getRuntime().exec("netstat -ano | findstr :" + port);
+            java.util.Scanner scanner = new java.util.Scanner(process.getInputStream());
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.contains("LISTENING")) {
+                    String[] parts = line.split("\\s+");
+                    String pid = parts[parts.length - 1];
+                    Runtime.getRuntime().exec("taskkill /PID " + pid + " /F");
+                    System.out.println("Puerto " + port + " liberado.");
+                }
+            }
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error al liberar el puerto.");
+        }
+    }
+
+    public static void stopAppiumServer() {
+        if (appiumProcess != null && appiumProcess.isAlive()) {
+            try {
+                // Destruye el proceso de Appium
+                appiumProcess.destroy();
+                // Espera a que se cierre completamente
+                appiumProcess.waitFor();
+
+                System.out.println("Appium Server detenido correctamente.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error al detener Appium Server.");
+            } finally {
+                // Comando para forzar la liberación del puerto en caso de error
+                try {
+                    Runtime.getRuntime().exec("taskkill /F /IM node.exe");
+                    System.out.println("Procesos relacionados con Appium cerrados.");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
+
